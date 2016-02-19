@@ -1,0 +1,25 @@
+#! /usr/bin/perl
+
+# usage:  command 2>&1 | mail-if args
+# sends mail if stdin is not empty
+# "args" are identical to mailx options and args.  See man 1 mailx
+# written by chip@seas, ported to perl by schanely@seas
+# last modified 02.23.00 by wenj@seas
+# brought to Comcast by john_batzel@comcast.com from seas.upenn.edu.
+
+delete $ENV{'ENV'};
+$ENV{'PATH'}='/usr/bin';
+
+$text = join "", <STDIN>;
+if ($text =~ /\w+/) {
+    foreach (@ARGV) {
+        # single quote everything so that multi word arguments don't
+        # get sent to mailx as separate args
+            $args .= "\'$_\' ";
+    }
+    $args =~ /^([^<>&!*?;|~\[]*)$/ and $args = $1
+        or die "$prog: arguments \'$args\', is fishy.\n";
+    open PIPEIN, "| mailx $args";
+    print PIPEIN $text;
+    close PIPEIN;
+}
